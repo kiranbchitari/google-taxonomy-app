@@ -4,7 +4,7 @@ import { Paper, Typography, Grid } from '@mui/material';
 
 const CategoryDetails = ({ details }) => {
   return (
-    <Paper elevation={3} style={{ padding: '20px', marginTop: '20px', width: '100%' }}>
+    <Paper elevation={3} style={{ padding: '20px', marginTop: '20px', maxWidth: '600px' }}>
       <Typography variant="h5" gutterBottom>
         Category Details
       </Typography>
@@ -25,3 +25,4 @@ const CategoryDetails = ({ details }) => {
 };
 
 export default CategoryDetails;
+

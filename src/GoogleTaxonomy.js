@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
-import { TextField, Button, Typography, Container } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { TextField, Button, Typography, Container, Box } from '@mui/material';
+import axios from 'axios';
 import CategoryDetails from './CategoryDetails';
 
 const GoogleTaxonomy = () => {
   const [categoryId, setCategoryId] = useState('');
   const [categoryDetails, setCategoryDetails] = useState(null);
+
+  useEffect(() => {
+    if (categoryDetails) {
+      console.log('Category Details:', categoryDetails);
+    }
+  }, [categoryDetails]);
 
   const handleChange = (event) => {
     const trimmedValue = event.target.value.trim(); // Trim the value
@@ -14,10 +21,9 @@ const GoogleTaxonomy = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch('/taxonomy-with-ids.en-US.txt');
-      const taxonomyText = await response.text();
+      const response = await axios.get('/taxonomy-with-ids.en-US.txt');
+      const taxonomyText = response.data;
       const categories = parseTaxonomy(taxonomyText);
-      console.log('Parsed Categories:', categories); // Add this line to see the parsed categories
       const categoryDetail = categories.find((category) => category.id === categoryId);
       if (categoryDetail) {
         setCategoryDetails(categoryDetail);
@@ -28,25 +34,24 @@ const GoogleTaxonomy = () => {
       console.error('Error reading the Google Taxonomy file:', error);
     }
   };
-
   const parseTaxonomy = (taxonomyText) => {
     const lines = taxonomyText.split('\n');
     const categories = [];
-  
+
     const addCategory = (categoryId, categoryName, path) => {
       const category = { id: categoryId, name: categoryName, path: [...path], children: [] };
       categories.push(category);
       return category;
     };
-  
+
     for (const line of lines) {
       const [categoryId, categoryName] = line.split(' - ');
       if (!categoryId || !categoryName) {
         continue;
       }
-  
+
       const categoryLevels = categoryName.split(' > ');
-  
+
       let parent = null;
       let path = [];
       for (const level of categoryLevels) {
@@ -54,7 +59,7 @@ const GoogleTaxonomy = () => {
         const existingCategory = parent
           ? parent.children.find((child) => child.name === level)
           : categories.find((cat) => cat.name === level);
-  
+
         if (existingCategory) {
           parent = existingCategory;
         } else {
@@ -68,31 +73,35 @@ const GoogleTaxonomy = () => {
         }
       }
     }
-  
+
     return categories;
   };
-  
-  
 
   return (
-    <Container maxWidth="sm" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px' }}>
-      <Typography variant="h4" gutterBottom>
-        Google Taxonomy Category Details
-      </Typography>
-      <form onSubmit={handleSubmit} style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
-        <TextField
-          label="Enter Category ID"
-          value={categoryId}
-          onChange={handleChange}
-          variant="outlined"
-        />
-        <Button type="submit" variant="contained" color="primary" style={{ marginLeft: '10px' }}>
-          Get Category Details
-        </Button>
-      </form>
-      {categoryDetails && <CategoryDetails details={categoryDetails} />}
+    <Container maxWidth="md" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px', overflow: 'hidden' }}>
+      <Box p={3} bgcolor="#f0f0f0" borderRadius="8px" boxShadow={3} flexGrow={1} maxWidth="600px">
+        <Typography variant="h4" gutterBottom>
+          Google Taxonomy Category Details
+        </Typography>
+        <form onSubmit={handleSubmit} style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
+          <TextField
+            label="Enter Category ID"
+            value={categoryId}
+            onChange={handleChange}
+            variant="outlined"
+          />
+          <Button type="submit" variant="contained" color="primary" style={{ marginLeft: '10px' }}>
+            Get Category Details
+          </Button>
+        </form>
+        {categoryDetails && <CategoryDetails details={categoryDetails} />}
+      </Box>
     </Container>
   );
 };
 
 export default GoogleTaxonomy;
+
+
+
+
