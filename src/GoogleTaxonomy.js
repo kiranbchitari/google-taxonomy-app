@@ -17,7 +17,27 @@ const GoogleTaxonomy = () => {
     const trimmedValue = event.target.value.trim(); // Trim the value
     setCategoryId(trimmedValue);
   };
-
+  const fetchCategoryImage = async (categoryName) => {
+    try {
+      const apiKey = 'AIzaSyCzb6SI_JRrp6xLLYV617Ary6n59h36ros';
+      const cx = '004286675445984025592:ypgpkv9fjd4';
+      const response = await axios.get(`https://www.googleapis.com/customsearch/v1`, {
+        params: {
+          q: categoryName,
+          cx: cx,
+          key: apiKey,
+          searchType: 'image',
+        },
+      });
+      if (response?.data?.items?.length > 0) {
+        return response.data.items[0].link;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching category image:', error);
+      return null;
+    }
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
@@ -26,7 +46,8 @@ const GoogleTaxonomy = () => {
       const categories = parseTaxonomy(taxonomyText);
       const categoryDetail = categories.find((category) => category.id === categoryId);
       if (categoryDetail) {
-        setCategoryDetails(categoryDetail);
+        const imageUrl = await fetchCategoryImage(categoryDetail.name);
+        setCategoryDetails({ ...categoryDetail, imageUrl });
       } else {
         console.log('Category ID not found in the Google Taxonomy.');
       }
@@ -91,7 +112,7 @@ const GoogleTaxonomy = () => {
             variant="outlined"
           />
           <Button type="submit" variant="contained" color="primary" style={{ marginLeft: '10px' }}>
-            Get Category Details
+            Get Category Info
           </Button>
         </form>
         {categoryDetails && <CategoryDetails details={categoryDetails} />}
